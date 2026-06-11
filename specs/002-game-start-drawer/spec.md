@@ -97,6 +97,11 @@ When a player attempts to create or join a room, their name is trimmed of leadin
 | 8 | HTTP status for empty/whitespace names | Empty or whitespace-only name rejections return `400 Bad Request` (client input validation failure). |
 | 9 | Host/drawer leaves mid-round | If the host (who is also the drawer in the first round) leaves during the round, the room immediately transitions back to `lobby` status and all round state (`drawerId`, `currentWord`) is cleared. |
 | 10 | Polling in `GamePage` | `GamePage` includes an automatic ~2s polling loop (matching `LobbyPage`) to keep all clients synchronized with room state changes during gameplay. |
+| 11 | Guesser word placeholder | Guessers see underscores matching the secret word length (e.g. `_ _ _ _ _` for `rocket`). |
+| 12 | `drawerId`/`currentWord` in lobby | When the room is in `lobby` status, `drawerId` is `null` and `currentWord` is `null`. |
+| 13 | Room reset screen behavior | When a room transitions from `playing` back to `lobby` (e.g. host leaves mid-round), all remaining players are auto-redirected back to the lobby screen. |
+| 14 | Name trimming persistence | The stored participant name is the trimmed version; the UI always displays the trimmed version. |
+| 15 | `isDrawer` computation | The client computes `isDrawer` locally by comparing its own `participantId` to the `drawerId` returned in the snapshot; the backend does not add an `isDrawer` field. |
 
 ## Requirements *(mandatory)*
 
