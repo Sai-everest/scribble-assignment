@@ -77,7 +77,7 @@ When a player attempts to create or join a room, their name is trimmed of leadin
 
 ### Edge Cases
 
-- What happens if the host leaves after the game starts but during the first round? → Host transfers to the next earliest-joined participant; the new host does not change the current drawer mid-round.
+- What happens if the host leaves after the game starts but during the first round? → The room transitions back to `lobby` status and all round state (`drawerId`, `currentWord`) is cleared; the next earliest-joined participant becomes the new host.
 - What happens if the word list is exhausted? → Not applicable for the first round; only one round is implemented.
 - What happens if a player refreshes the browser during the first round? → Treated as a new session; they must re-join (but joining a `playing` room is rejected).
 - What happens if the drawer refreshes their browser? → Same as above; the game has no session recovery mechanism.
@@ -92,6 +92,11 @@ When a player attempts to create or join a room, their name is trimmed of leadin
 | 3 | Secret word visibility in API | The `GET /rooms/:code` endpoint returns `currentWord` only when the requesting `participantId` matches the `drawerId`; otherwise the field is omitted or `null`. |
 | 4 | Drawer for first round only | Only one round is implemented. There is no drawer rotation. |
 | 5 | Name trimming scope | Trimming applies to both create-room and join-room name inputs on the backend. |
+| 6 | `currentWord` visibility in API for guessers | The `GET /rooms/:code` endpoint returns `currentWord: null` for guessers (i.e., the field is always present but is `null` when the viewer is not the drawer). |
+| 7 | `drawerId` on `RoomSnapshot` | The `RoomSnapshot` type replaces the `roles` array with a `drawerId: string` field; each client derives participant roles by comparing participant IDs to `drawerId`. |
+| 8 | HTTP status for empty/whitespace names | Empty or whitespace-only name rejections return `400 Bad Request` (client input validation failure). |
+| 9 | Host/drawer leaves mid-round | If the host (who is also the drawer in the first round) leaves during the round, the room immediately transitions back to `lobby` status and all round state (`drawerId`, `currentWord`) is cleared. |
+| 10 | Polling in `GamePage` | `GamePage` includes an automatic ~2s polling loop (matching `LobbyPage`) to keep all clients synchronized with room state changes during gameplay. |
 
 ## Requirements *(mandatory)*
 
@@ -112,7 +117,7 @@ When a player attempts to create or join a room, their name is trimmed of leadin
 
 - **Room**: Updated attributes: `status` (`"lobby" | "playing"`), `drawerId` (reference to the current drawer participant), `currentWord` (the secret word for the active round).
 - **Participant**: No new attributes; role is inferred from `drawerId` comparison.
-- **RoomSnapshot**: Updated attributes: `drawerId` (visible to all), `currentWord` (included only when the requesting participant is the drawer).
+- **RoomSnapshot**: Updated attributes: `drawerId` (visible to all, replaces the `roles` array), `currentWord` (always present; `string` for the drawer, `null` for guessers).
 
 ## Success Criteria *(mandatory)*
 
