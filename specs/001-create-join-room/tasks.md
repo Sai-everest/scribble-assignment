@@ -30,8 +30,8 @@
 
 - [ ] T002 [P] Extend `backend/src/models/game.ts` with `"playing"` RoomStatus, `hostParticipantId` on Room, and `hostId` on RoomSnapshot
 - [ ] T003 [P] Update Zod schemas in `backend/src/api/schemas.ts` to require non-empty trimmed `playerName` and add `startGameSchema`
-- [ ] T004 Extend `backend/src/services/roomStore.ts` with host assignment on create, empty-name rejection, and `hostId` in `toRoomSnapshot`
-- [ ] T005 Wire `POST /rooms/:code/start` route handler into `backend/src/api/rooms.ts` with error handling
+- [ ] T004 Extend `backend/src/services/roomStore.ts` with host assignment on `createRoom`, empty-name rejection on both `createRoom` and `joinRoom`, `hostId` in `toRoomSnapshot`, and host-transfer-on-leave (FIFO)
+- [ ] T005 Add stub `POST /rooms/:code/start` route in `backend/src/api/rooms.ts` returning 501 Not Implemented
 - [ ] T006 [P] Add `startGame` API function to `frontend/src/services/api.ts`
 - [ ] T007 Extend `frontend/src/state/roomStore.ts` with `startGame` method and polling support
 
@@ -47,8 +47,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 Implement host assignment in `backend/src/services/roomStore.ts` `createRoom`
-- [ ] T009 Update `backend/src/api/rooms.ts` POST `/rooms` to return 400 for empty/whitespace names
+- [ ] T009 Verify `backend/src/api/rooms.ts` POST `/rooms` returns 400 for empty/whitespace names via the updated Zod schema (T003)
 - [ ] T010 [P] Add name trimming and validation feedback to `frontend/src/pages/CreateRoomPage.tsx`
 - [ ] T011 [P] Update `frontend/src/pages/LobbyPage.tsx` to show host badge next to the host participant
 
@@ -115,6 +114,7 @@
 - [ ] T025 Add frontend API tests for startGame in `frontend/src/services/api.test.ts`
 - [ ] T026 Run quickstart validation scenarios
 - [ ] T027 Run `npm run build` in backend and frontend
+- [ ] T028 Add `leaveRoom` / `removeParticipant` logic to `backend/src/services/roomStore.ts` with automatic host transfer to next-joined participant (FIFO) and immediate room deletion when empty
 
 ---
 

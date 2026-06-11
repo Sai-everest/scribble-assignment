@@ -122,7 +122,7 @@ While in the lobby, the player list automatically updates approximately every 2 
 
 ## Assumptions
 
-- Room codes are short alphanumeric strings (e.g., 4–6 characters) that are easy to share and type.
+- Room codes are exactly 4 uppercase alphanumeric characters that are easy to share and type.
 - Player names do not need to be globally unique; uniqueness within a room is not enforced.
 - There is no reconnection or session persistence across browser refreshes; a refresh is treated as a new session.
 - Only one round is implemented per game, with no drawer rotation, timers, or multiple rounds.
