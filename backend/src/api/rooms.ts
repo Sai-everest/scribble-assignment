@@ -4,9 +4,10 @@ import {
   HttpError,
   joinRoomSchema,
   roomCodeParamsSchema,
-  roomViewerQuerySchema
+  roomViewerQuerySchema,
+  startGameSchema
 } from "./schemas.js";
-import { createRoom, getRoom, joinRoom, toRoomSnapshot } from "../services/roomStore.js";
+import { createRoom, getRoom, joinRoom, startGame, toRoomSnapshot, GameError } from "../services/roomStore.js";
 
 export function createRoomsRouter() {
   const router = Router();
@@ -29,7 +30,18 @@ export function createRoomsRouter() {
     try {
       const { code } = roomCodeParamsSchema.parse(request.params);
       const { playerName } = joinRoomSchema.parse(request.body);
-      const result = joinRoom(code.toUpperCase(), playerName);
+      const upperCode = code.toUpperCase();
+      const existingRoom = getRoom(upperCode);
+
+      if (!existingRoom) {
+        throw new HttpError(404, "Unable to join room");
+      }
+
+      if (existingRoom.status === "playing") {
+        throw new HttpError(409, "Game already in progress");
+      }
+
+      const result = joinRoom(upperCode, playerName);
 
       if (!result) {
         throw new HttpError(404, "Unable to join room");
@@ -58,6 +70,28 @@ export function createRoomsRouter() {
         room: toRoomSnapshot(room, participantId)
       });
     } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:code/start", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId } = startGameSchema.parse(request.body);
+      const room = startGame(code.toUpperCase(), participantId);
+
+      response.json({
+        room: toRoomSnapshot(room)
+      });
+    } catch (error) {
+      if (error instanceof GameError) {
+        const statusCode =
+          error.code === "NOT_FOUND" ? 404 :
+            error.code === "FORBIDDEN" ? 403 :
+              409;
+        next(new HttpError(statusCode, error.message));
+        return;
+      }
       next(error);
     }
   });
