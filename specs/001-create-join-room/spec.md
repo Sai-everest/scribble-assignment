@@ -127,3 +127,7 @@ While in the lobby, the player list automatically updates approximately every 2 
 - There is no reconnection or session persistence across browser refreshes; a refresh is treated as a new session.
 - Only one round is implemented per game, with no drawer rotation, timers, or multiple rounds.
 - The word list is fixed: `rocket`, `pizza`, `castle`, `guitar`, `sunflower`.
+
+## Fixes Applied
+
+- **API Base URL Typo**: The default `API_BASE_URL` in `frontend/src/services/api.ts` contained an erroneous `/bug` suffix (`http://localhost:3001/bug`), causing all API requests to return 404 "Route not found". Corrected to `http://localhost:3001`.

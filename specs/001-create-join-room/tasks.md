@@ -210,4 +210,5 @@ With multiple developers:
 - Verify tests fail before implementing
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
+- Bug fix: Corrected `API_BASE_URL` typo (`/bug` suffix) in `frontend/src/services/api.ts` that caused 404 "Route not found" on all API calls including create-room.
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
