@@ -29,14 +29,18 @@ function generateUniqueCode() {
   return code;
 }
 
-function displayName(name?: string) {
-  return name || "Player";
+function validateName(name?: string): string {
+  const trimmed = name?.trim() ?? "";
+  if (trimmed.length === 0) {
+    throw new Error("Player name is required");
+  }
+  return trimmed;
 }
 
 function createParticipant(name?: string): Participant {
   return {
     id: randomUUID(),
-    name: displayName(name),
+    name: validateName(name),
     joinedAt: now()
   };
 }
@@ -55,6 +59,7 @@ export function createRoom(playerName?: string) {
     code: generateUniqueCode(),
     status: "lobby",
     participants: [participant],
+    hostParticipantId: participant.id,
     createdAt: now(),
     updatedAt: now()
   };
@@ -71,6 +76,10 @@ export function joinRoom(code: string, playerName?: string) {
   const room = rooms.get(code);
 
   if (!room) {
+    return null;
+  }
+
+  if (room.status === "playing") {
     return null;
   }
 
@@ -96,13 +105,97 @@ export function saveRoom(room: Room) {
   return getRoom(room.code);
 }
 
-export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
-  void viewerParticipantId;
+export class GameError extends Error {
+  constructor(
+    message: string,
+    public readonly code: "NOT_FOUND" | "FORBIDDEN" | "CONFLICT"
+  ) {
+    super(message);
+  }
+}
 
+export function startGame(code: string, participantId: string) {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new GameError("Unable to load room", "NOT_FOUND");
+  }
+
+  if (room.hostParticipantId !== participantId) {
+    throw new GameError("Only the host can start the game", "FORBIDDEN");
+  }
+
+  if (room.status !== "lobby") {
+    throw new GameError("Game already started", "CONFLICT");
+  }
+
+  if (room.participants.length < 2) {
+    throw new GameError("At least 2 players are required", "CONFLICT");
+  }
+
+  room.status = "playing";
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return cloneRoom(room);
+}
+
+export function removeParticipant(code: string, participantId: string) {
+  const room = rooms.get(code);
+
+  if (!room) {
+    return null;
+  }
+
+  const index = room.participants.findIndex((p) => p.id === participantId);
+
+  if (index === -1) {
+    return null;
+  }
+
+  room.participants.splice(index, 1);
+
+  if (room.participants.length === 0) {
+    rooms.delete(code);
+    return null;
+  }
+
+  if (room.hostParticipantId === participantId) {
+    const nextHost = room.participants[0];
+    room.hostParticipantId = nextHost.id;
+  }
+
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return cloneRoom(room);
+}
+
+const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
+
+export function cleanupIdleRooms() {
+  const cutoff = new Date(Date.now() - IDLE_TIMEOUT_MS).toISOString();
+
+  for (const [code, room] of rooms.entries()) {
+    if (room.status === "lobby" && room.updatedAt < cutoff) {
+      rooms.delete(code);
+    }
+  }
+}
+
+export function clearRooms() {
+  rooms.clear();
+}
+
+// Start periodic cleanup
+setInterval(cleanupIdleRooms, 60_000);
+
+export function toRoomSnapshot(room: Room, _viewerParticipantId?: string): RoomSnapshot {
   return {
     code: room.code,
     status: room.status,
     participants: room.participants.map((participant) => ({ ...participant })),
+    hostId: room.hostParticipantId,
     availableWords: listWords(),
     roles: [...STARTER_ROLES]
   };
