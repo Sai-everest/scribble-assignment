@@ -32,7 +32,7 @@
 - [ ] T003 [P] Extend `frontend/src/services/api.ts` `RoomSnapshot` type with `drawerId: string | null` and `currentWord: string | null` (remove `roles`)
 - [ ] T004 Update `backend/src/services/roomStore.ts` `createRoom` to initialize `drawerId: null` and `currentWord: null`
 - [ ] T005 Update `backend/src/services/roomStore.ts` `toRoomSnapshot` to include `drawerId` and viewer-based `currentWord` (actual word for drawer, `null` for guesser)
-- [ ] T006 Update `backend/src/api/rooms.ts` GET `/:code` to pass `participantId` to `toRoomSnapshot`
+- [ ] T006 Update `backend/src/api/rooms.ts` to pass `participantId` into `toRoomSnapshot` for both `GET /:code` and `POST /:code/start` endpoints
 
 **Checkpoint**: Foundation ready — types, snapshot logic, and frontend API types support all user stories.
 
@@ -49,7 +49,7 @@
 - [ ] T007 [US1] Update `backend/src/services/roomStore.ts` `startGame` to set `status = "playing"`, `drawerId = hostParticipantId`, and `currentWord = STARTER_WORDS[0]`
 - [ ] T008 [US1] Update `backend/src/services/roomStore.ts` `removeParticipant` to reset room to `lobby`, clear `drawerId` and `currentWord`, and transfer host when the host leaves during `playing`
 - [ ] T009 [P] [US1] Add ~2s automatic polling loop to `frontend/src/pages/GamePage.tsx` using `fetchRoom`
-- [ ] T010 [P] [US1] Ensure `frontend/src/pages/LobbyPage.tsx` auto-redirects to `/game` when `room.status === "playing"` and `frontend/src/pages/GamePage.tsx` auto-redirects to `/lobby` when `room.status === "lobby"`
+- [ ] T010 [P] [US1] Ensure `frontend/src/pages/LobbyPage.tsx` auto-redirects to `/game` when `room.status === "playing"` and `frontend/src/pages/GamePage.tsx` auto-redirects to `/lobby` when `room.status === "lobby"`. Also ensure both pages redirect to `/` (StartPage) when no valid `participantId` exists in local state.
 
 **Checkpoint**: User Story 1 should be fully functional and testable independently.
 
@@ -59,7 +59,7 @@
 
 **Goal**: All players can clearly see who the current drawer is.
 
-**Independent Test**: Start game with two players; verify drawer sees "You are the drawer" and guesser sees "[Name] is drawing".
+**Independent Test**: Start game with two players; verify drawer sees "You are the drawer" and guesser sees "[Name] is drawing". (Requires US1 backend changes for `drawerId` population.)
 
 ### Implementation for User Story 2
 
@@ -73,7 +73,7 @@
 
 **Goal**: Secret word is deterministically selected (`rocket`) and visible only to the drawer; guessers see underscores.
 
-**Independent Test**: Start game; verify drawer tab shows "rocket" and guesser tab shows "_ _ _ _ _".
+**Independent Test**: Start game; verify drawer tab shows "rocket" and guesser tab shows "_ _ _ _ _". (Requires US1 backend changes for `currentWord` population.)
 
 ### Implementation for User Story 3
 
