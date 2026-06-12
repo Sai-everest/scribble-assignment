@@ -19,13 +19,12 @@
 
 **Expected Outcome**: Both tabs transition to a results view within ~3 seconds. The secret word is visible to both Alice and Bob. Scores and guess history are displayed.
 
-### Scenario 2: Automatic Round End (All Guessers Correct)
+### Scenario 2: Automatic Round End (First Correct Guess)
 
 1. Complete steps 1–3 from Scenario 1.
 2. In Tab B, submit the correct word.
-3. If there are additional guesser tabs, have each submit the correct word.
 
-**Expected Outcome**: Once the last non-drawer participant submits a correct guess, all tabs automatically transition to `results` state within ~3 seconds (on next poll). The secret word, scores, and history are visible to all.
+**Expected Outcome**: The room immediately transitions to `results` state on the first correct guess. Within ~3 seconds (on next poll), all tabs show the results view. The secret word, scores, and history are visible to all.
 
 ### Scenario 4: Non-Host Cannot End or Restart
 

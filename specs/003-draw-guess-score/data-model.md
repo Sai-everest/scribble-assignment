@@ -9,7 +9,7 @@ Represents an isolated game session.
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | `code` | `string` | 4 chars, uppercase alphanumeric, unique | Shareable room identifier |
-| `status` | `RoomStatus` | `"lobby" \| "playing"` | Current phase of the session |
+| `status` | `RoomStatus` | `"lobby" \| "playing" \| "results"` | Current phase of the session |
 | `participants` | `Participant[]` | ordered by `joinedAt` | Players currently in the room |
 | `hostParticipantId` | `string` | must match a participant `id` | Reference to the current host |
 | `drawerId` | `string \| null` | must match a participant `id` when set | Current drawer (null in lobby) |
@@ -101,6 +101,7 @@ Public view of a room returned to clients.
 
 ```
 lobby ──[host starts, >=2 players]──> playing
+playing ──[first correct guess]──> results
 playing ──[drawer leaves]──> lobby
 playing ──[host leaves (also drawer)]──> lobby
 ```
@@ -116,6 +117,6 @@ playing ──[host leaves (also drawer)]──> lobby
 - **Start**: `POST /rooms/:code/start` → `status = "playing"`; `scores` initialized to `0` for each participant; `guessHistory` and `canvasStrokes` set to empty arrays.
 - **Draw**: `POST /rooms/:code/canvas` → append new `Stroke` to `canvasStrokes`.
 - **Clear Canvas**: `POST /rooms/:code/canvas/clear` → `canvasStrokes` set to empty array.
-- **Guess**: `POST /rooms/:code/guess` → validate, append `GuessEntry` to `guessHistory`, update `scores` if first correct guess.
+- **Guess**: `POST /rooms/:code/guess` → validate, append `GuessEntry` to `guessHistory`, update `scores` if first correct guess. On the first correct guess, room `status` transitions to `"results"`.
 - **Reset**: When drawer leaves during `playing`, all round state is cleared and room returns to `lobby`.
 - **Cleanup**: Room deleted when `participants.length === 0`. Idle rooms still cleaned up after 10 minutes.

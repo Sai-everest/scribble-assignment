@@ -265,7 +265,7 @@ describe("roomStore", () => {
     expect(result.room.guessHistory).toHaveLength(1);
   });
 
-  it("submitGuess auto-transitions room to results when all non-drawers guessed correctly", () => {
+  it("submitGuess auto-transitions room to results on first correct guess", () => {
     const { room, participantId: aliceId } = createRoom("Alice");
     const bobResult = joinRoom(room.code, "Bob")!;
     startGame(room.code, aliceId);

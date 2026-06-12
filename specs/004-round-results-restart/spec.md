@@ -16,11 +16,11 @@ After a round ends, the room enters a `results` state where every participant ca
 
 **Why this priority**: This is the payoff of the gameplay loop; players need to see the outcome of their guesses and the correct answer.
 
-**Independent Test**: Can be tested by ending a round (either by all guessers guessing correctly or host action) and verifying all players see the results screen with word, scores, and history.
+**Independent Test**: Can be tested by ending a round (either by the first correct guess or host action) and verifying all players see the results screen with word, scores, and history.
 
 **Acceptance Scenarios**:
 
-1. **Given** a round is active, **When** all non-drawer participants have submitted a correct guess, **Then** the room state transitions to `results` and all players see the secret word, final scores, and full guess history.
+1. **Given** a round is active, **When** any guesser submits the correct word, **Then** the room state transitions to `results` and all players see the secret word, final scores, and full guess history.
 2. **Given** a round is active, **When** the host manually ends the round, **Then** the room state transitions to `results` and all players see the secret word, final scores, and full guess history.
 3. **Given** the room is in `results` state, **When** a player views the screen, **Then** they see the secret word prominently displayed.
 4. **Given** the room is in `results` state, **When** a player views the screen, **Then** they see a scoreboard showing every participant's score from the just-completed round.
@@ -52,13 +52,13 @@ From the results screen, the host can restart the game, returning all players to
 - What happens if a player refreshes during the results screen? → They must re-join the room; joining a room in `results` state is rejected (joining is only allowed in `lobby`).
 - What happens if a player submits a guess while the round is ending or in results state? → Rejected because the room is not in `playing` state.
 - What happens if the host restarts while a player is viewing results? → On the next poll, the player sees the lobby.
-- What happens if all non-drawer participants have already left before the round ends? → The round can only be ended by the host manually; the automatic "all correct" condition cannot be met without participants.
+- What happens if all non-drawer participants have already left before the round ends? → The round can only be ended by the host manually; there are no guessers left to trigger the automatic end.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST transition the room to `results` state when all non-drawer participants have submitted at least one correct guess.
+- **FR-001**: The system MUST transition the room to `results` state when any guesser submits the correct word.
 - **FR-002**: The host MUST be able to manually end an active round at any time, transitioning the room to `results` state.
 - **FR-003**: In `results` state, the system MUST reveal the secret word to all participants.
 - **FR-004**: In `results` state, the system MUST display each participant's final score for the completed round.
@@ -96,7 +96,7 @@ From the results screen, the host can restart the game, returning all players to
 - The existing polling mechanism (~2 seconds) is used to sync the `results` state to all clients.
 - There is no game-over screen beyond the results view; the results view serves as the end-of-round summary.
 - Player reconnection (browser refresh) during `results` state requires re-joining, which is only allowed in `lobby`.
-- The automatic round-end condition (all non-drawer participants guessed correctly) is evaluated on each correct guess submission.
+- The automatic round-end condition (first correct guess submitted by any guesser) is evaluated on each guess submission.
 
 ## Out of Scope
 

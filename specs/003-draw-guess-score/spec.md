@@ -78,8 +78,9 @@ A scoreboard displays each player's current score. Correct guesses add 100 point
 
 ### Edge Cases
 
+- What happens when a guesser submits the correct word? → The round ends immediately, the room transitions to `results` status, and the guesser receives 100 points.
 - What happens if the drawer attempts to submit a guess? → The submission is rejected with a clear message that the drawer cannot guess.
-- What happens if a guesser submits the correct word multiple times? → Only the first correct guess awards 100 points; subsequent identical submissions add 0 and appear in history.
+- What happens if a guesser submits the correct word multiple times? → Only the first correct guess awards 100 points; subsequent submissions are rejected because the room has transitioned to `results` status.
 - What happens if the canvas is cleared while guessers are viewing it? → All strokes are removed and the canvas appears blank to all players on the next poll.
 - What happens if a guess is submitted while the secret word is null (e.g., room not in playing state)? → Rejected with a clear error.
 - What happens if a player refreshes their browser mid-round? → Treated as a new session; they must re-join (but joining a playing room is rejected per spec 001).
@@ -128,7 +129,7 @@ A scoreboard displays each player's current score. Correct guesses add 100 point
 
 - Canvas drawing uses freehand strokes (lines); no shapes, text, or images are supported.
 - The canvas state is synchronized via the same ~2-second polling mechanism used for room state.
-- There is no round timer; the round continues until the host leaves or the room is otherwise ended.
+- There is no round timer; the round ends immediately when any guesser submits the correct word, transitioning the room to `results` status.
 - Only one round is implemented per game, with no drawer rotation, subsequent rounds, or game-over screen.
 - A player may guess correctly multiple times, but only the first correct guess awards points.
 - The canvas is a shared, single-layer drawing surface; there is no undo, redo, or per-stroke deletion beyond the global clear action.
@@ -149,7 +150,7 @@ A scoreboard displays each player's current score. Correct guesses add 100 point
 | # | Category | Question | Answer |
 |---|----------|----------|--------|
 | 1 | Domain & Data Model | What is the canonical representation of a "stroke" stored server-side and returned via polling? | Array of strokes: `{ points: [{x: number, y: number}], color: string, width: number }`. |
-| 2 | Functional Scope & Behavior | If multiple different players guess the word correctly, should each of them receive 100 points, or only the first correct guesser? | Yes — every distinct player who guesses correctly gets 100 points. |
+| 2 | Functional Scope & Behavior | What happens when the first player guesses the word correctly? | The round ends immediately; the room transitions to `results` status and the correct guesser receives 100 points. Only one correct guess is possible per round. |
 | 3 | Integration & External Dependencies | Should canvas drawing state, guess history, and scoreboard data be delivered through the existing room snapshot polling endpoint, or through separate dedicated endpoints? | Extend the existing room snapshot endpoint with the new fields. |
 | 4 | Interaction & UX Flow | Should canvas stroke coordinates be normalized to a fixed logical size or kept as raw pixels from the drawer's viewport? | Normalize to a fixed logical canvas (e.g., `0–1000` units) and scale on render. |
 | 5 | Edge Cases & Failure Handling | What happens if the drawer leaves mid-round? | End the round immediately, clear all round state, and return the room to lobby. |

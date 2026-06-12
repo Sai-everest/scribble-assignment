@@ -35,12 +35,12 @@ Unchanged from feature 002. See `specs/002-game-start-drawer/contracts/api.md`.
 **Validation**:
 - `code`: must exist. Missing/invalid → `404`.
 
-**Response 200** (viewer is drawer, round active with state):
+**Response 200** (viewer is drawer, round ended with correct guess):
 ```json
 {
   "room": {
     "code": "ABCD",
-    "status": "playing",
+    "status": "results",
     "participants": [
       { "id": "550e8400-e29b-41d4-a716-446655440000", "name": "Alice", "joinedAt": "2026-06-12T09:00:00.000Z", "score": 0 },
       { "id": "660e8400-e29b-41d4-a716-446655440001", "name": "Bob", "joinedAt": "2026-06-12T09:00:01.000Z", "score": 100 }

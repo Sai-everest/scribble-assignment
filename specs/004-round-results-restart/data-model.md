@@ -90,7 +90,7 @@ Public view of a room returned to clients.
 
 ```
 lobby ──[host starts, >=2 players]──> playing
-playing ──[all non-drawers guessed correctly]──> results
+playing ──[first correct guess]──> results
 playing ──[host manually ends]──> results
 playing ──[drawer leaves]──> lobby
 playing ──[host leaves]──> lobby

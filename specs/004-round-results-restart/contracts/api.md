@@ -101,7 +101,7 @@ Unchanged from feature 002. See `specs/002-game-start-drawer/contracts/api.md`.
 
 Unchanged from feature 003. See `specs/003-draw-guess-score/contracts/api.md`.
 
-**Behavior update**: When a correct guess causes all non-drawer participants to have at least one correct guess, the room automatically transitions to `results` state. The returned `RoomSnapshot` will have `status: "results"`.
+**Behavior update**: When the first correct guess is submitted, the room automatically transitions to `results` state. The returned `RoomSnapshot` will have `status: "results"`.
 
 ---
 

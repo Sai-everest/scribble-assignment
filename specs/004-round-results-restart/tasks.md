@@ -45,12 +45,12 @@
 
 **Goal**: When a round ends (automatically or by host action), the room enters `"results"` state and all participants see the secret word, final scores, and full guess history.
 
-**Independent Test**: End a round via host action or by having all non-drawers guess correctly; verify all clients see the results view with word, scores, and history within ~3 seconds (next poll).
+**Independent Test**: End a round via host action or by having any guesser submit the correct word; verify all clients see the results view with word, scores, and history within ~3 seconds (next poll).
 
 ### Implementation for User Story 1
 
 - [x] T008 [US1] Implement `endRound()` service function in `backend/src/services/roomStore.ts`
-- [x] T009 [US1] Update `submitGuess()` to auto-transition room to `"results"` when all non-drawers have a correct guess (skip if zero non-drawers) in `backend/src/services/roomStore.ts`
+- [x] T009 [US1] Update `submitGuess()` to auto-transition room to `"results"` on the first correct guess in `backend/src/services/roomStore.ts`
 - [x] T010 [US1] Wire `POST /:code/end` endpoint in `backend/src/api/rooms.ts`
 - [x] T011 [P] [US1] Add `api.endRound()` helper in `frontend/src/services/api.ts`
 - [x] T012 [US1] Update `GamePage` to render results UI branch when `status === "results"` in `frontend/src/pages/GamePage.tsx`

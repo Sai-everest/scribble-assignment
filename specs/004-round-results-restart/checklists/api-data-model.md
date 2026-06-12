@@ -11,8 +11,8 @@
 
 - [x] **CHK001**: Does the data model explicitly define how the `results` state is represented and what fields are populated versus cleared?
   - Verified: `data-model.md` line 102 documents `results` preserves round state; `game.ts` has `RoomStatus = "lobby" | "playing" | "results"`.
-- [x] **CHK002**: Is the automatic round-end condition (all non-drawer participants guessed correctly) implemented as a server-side check on every successful guess submission?
-  - Verified: `roomStore.ts` lines 288-297 (`allNonDrawersGuessedCorrectly`) called in `submitGuess` after every correct guess.
+- [x] **CHK002**: Is the automatic round-end condition (first correct guess by any guesser) implemented as a server-side check on every successful guess submission?
+  - Verified: `roomStore.ts` `submitGuess` transitions `status` to `"results"` immediately when `isCorrect` is true.
 - [x] **CHK003**: Is the host manual round-end endpoint protected by host-only authorization?
   - Verified: `rooms.ts` `POST /:code/end` wires `endRound` which checks `hostParticipantId === participantId`; returns 403 otherwise.
 - [x] **CHK004**: Does the restart endpoint explicitly clear all round state while preserving participant and host references?
@@ -27,7 +27,7 @@
 - [x] **CHK007**: Are the error response shapes for the new `POST /end-round` and `POST /restart` endpoints consistent with the existing `{ message: string }` format?
   - Verified: Both routes use `next(new HttpError(statusCode, error.message))` producing `{ message: string }`.
 - [x] **CHK008**: Is the drawer-leave mid-round behavior (from spec 003) distinguished from the new round-end behavior in state transitions?
-  - Verified: `data-model.md` lines 91-98 shows `playing ──[drawer leaves]──> lobby` separate from `playing ──[all correct/host ends]──> results`.
+  - Verified: `data-model.md` lines 91-98 shows `playing ──[drawer leaves]──> lobby` separate from `playing ──[first correct guess/host ends]──> results`.
 
 ## Requirement Consistency
 
@@ -57,8 +57,8 @@
   - Verified: `removeParticipant` transfers host to next participant when host leaves; room is only destroyed when `participants.length === 0`. Remaining participants stay in the room and continue viewing results. This differs from the spec edge case text but is consistent with the data-model lifecycle.
 - [x] **CHK018**: Does the design prevent guess submissions in `results` state beyond endpoint-level validation (e.g., service-layer guard)?
   - Verified: `submitGuess` in `roomStore.ts` checks `status !== "playing"` at the service layer and throws `CONFLICT` before any guess processing.
-- [x] **CHK019**: Is the automatic round-end check robust against the case where a non-drawer participant leaves after guessing correctly (their correct guess still counts toward the condition)?
-  - Verified: `allNonDrawersGuessedCorrectly` filters by current `room.participants`. If a non-drawer leaves, they are no longer in the participant list, so the condition is evaluated against remaining players only. This is acceptable behavior.
+- [x] **CHK019**: Is the automatic round-end check robust against participant departures mid-round?
+  - Verified: The auto-end condition is simply `isCorrect === true` on the current guess. Departed guessers do not affect the condition because the round ends immediately on the first correct guess.
 
 ## Constitution Alignment
 
@@ -80,7 +80,6 @@
 - All 22 CHK items verified against source code and design documents.
 - No constitution violations.
 - Minor note: CHK017 (host leaves during results) — implementation transfers host rather than destroying the room, which is consistent with the data-model lifecycle but differs from the spec edge-case text. This is acceptable for in-memory state discipline.
-- Minor note: CHK019 — departed non-drawers are excluded from the auto-end check, which evaluates only current participants. This is reasonable behavior.
 
 ## Approval
 

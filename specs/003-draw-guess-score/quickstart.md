@@ -47,6 +47,7 @@
 3. **Expected**: The guess appears in the Activity/History panel in both tabs within ~3 seconds.
 4. **Expected**: Bob's score increases by 100 in the Scoreboard, visible in both tabs.
 5. **Expected**: Alice's score remains 0.
+6. **Expected**: The room status transitions to `results` in both tabs; no further guesses can be submitted.
 
 ### Scenario 4: Guesser Submits Case-Variant Correct Guess
 

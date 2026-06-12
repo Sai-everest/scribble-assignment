@@ -52,7 +52,7 @@ This added the core gameplay interaction.
 - **Guess submission**: `POST /rooms/:code/guess` accepts text guesses. Submissions are trimmed and compared case-insensitively against the secret word.
 - **Empty guess rejection**: Whitespace-only guesses are rejected with a `400` and a clear message; no points are awarded.
 - **Drawer guess blocking**: The drawer cannot submit guesses; the API rejects such attempts.
-- **Scoring**: Correct guesses award exactly 100 points. Incorrect guesses award 0. Every distinct player who guesses correctly gets 100 points (not just the first).
+- **Scoring**: Correct guesses award exactly 100 points. Incorrect guesses award 0. The round ends immediately on the first correct guess, so only one player can receive 100 points per round.
 - **Guess history**: An ordered `guessHistory` array tracks every submission with the participant ID, trimmed guess text, correctness flag, and timestamp. It syncs to all clients via polling.
 - **Scoreboard**: A live scoreboard displays every participant's current score and updates in sync with the guess history.
 - **State guards**: Guess submissions are rejected if the room is not in `playing` state or if the secret word is null.
@@ -63,7 +63,7 @@ This added the core gameplay interaction.
 This closed the gameplay loop with a results screen and replayability.
 
 - **`results` state**: A new `RoomStatus` value `"results"` represents the end-of-round phase.
-- **Automatic round end**: When all non-drawer participants have submitted at least one correct guess, the room auto-transitions to `results`.
+- **Automatic round end**: When the first correct guess is submitted, the room auto-transitions to `results`.
 - **Manual round end**: The host can manually end the round at any time via `POST /rooms/:code/end`.
 - **Result reveal**: In `results` state, `currentWord` is revealed to all participants (not just the drawer), alongside the final scoreboard and full chronological guess history.
 - **Results UI**: The Game page conditionally renders a results panel showing the secret word, scores, guess history, and the final canvas drawing.

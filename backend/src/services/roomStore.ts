@@ -285,17 +285,6 @@ export function endRound(code: string, participantId: string) {
   return cloneRoom(room);
 }
 
-function allNonDrawersGuessedCorrectly(room: Room): boolean {
-  const nonDrawers = room.participants.filter((p) => p.id !== room.drawerId);
-  if (nonDrawers.length === 0) {
-    return false;
-  }
-
-  return nonDrawers.every((p) =>
-    room.guessHistory.some((g) => g.participantId === p.id && g.isCorrect)
-  );
-}
-
 export function submitGuess(code: string, participantId: string, guessText: string): SubmitGuessResult {
   const room = rooms.get(code);
 
@@ -342,7 +331,7 @@ export function submitGuess(code: string, participantId: string, guessText: stri
   room.guessHistory.push(guess);
   room.updatedAt = now();
 
-  if (isCorrect && allNonDrawersGuessedCorrectly(room)) {
+  if (isCorrect) {
     room.status = "results";
   }
 
