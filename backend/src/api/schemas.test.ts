@@ -111,4 +111,18 @@ describe("schemas", () => {
   it("submitGuessSchema rejects missing participantId", () => {
     expect(() => submitGuessSchema.parse({ guess: "rocket" })).toThrow();
   });
+
+  it("submitGuessSchema rejects guesses over 100 characters", () => {
+    expect(() => submitGuessSchema.parse({ participantId: "p1", guess: "a".repeat(101) })).toThrow();
+  });
+
+  it("updateCanvasSchema rejects stroke with more than 500 points", () => {
+    const points = Array.from({ length: 501 }, (_, i) => ({ x: i % 1000, y: i % 1000 }));
+    expect(() =>
+      updateCanvasSchema.parse({
+        participantId: "p1",
+        stroke: { points, color: "#000000", width: 4 }
+      })
+    ).toThrow();
+  });
 });

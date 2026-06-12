@@ -16,7 +16,7 @@ Represents an isolated game session.
 | `currentWord` | `string \| null` | non-empty when set | Secret word for the active round (null in lobby) |
 | `scores` | `Map<string, number>` | keys are participant IDs; values default to 0 | Per-player score for the current round |
 | `guessHistory` | `GuessEntry[]` | ordered by `submittedAt` | Chronological list of all guesses submitted |
-| `canvasStrokes` | `Stroke[]` | ordered by draw time | Current drawing strokes on the canvas |
+| `canvasStrokes` | `Stroke[]` | ordered by draw time, max 500 total | Current drawing strokes on the canvas |
 | `createdAt` | `ISO string` | — | Room creation timestamp |
 | `updatedAt` | `ISO string` | — | Last mutation timestamp |
 
@@ -38,7 +38,7 @@ Represents a single submitted guess.
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
 | `participantId` | `string` | must match a participant `id` | Who submitted the guess |
-| `guess` | `string` | non-empty after trim | The trimmed guess text |
+| `guess` | `string` | non-empty after trim, max 100 chars | The trimmed guess text |
 | `isCorrect` | `boolean` | — | Whether the guess matched the secret word |
 | `submittedAt` | `ISO string` | — | When the guess was received |
 
@@ -48,7 +48,7 @@ Represents a single freehand stroke on the canvas.
 
 | Field | Type | Constraints | Description |
 |-------|------|-------------|-------------|
-| `points` | `Point[]` | at least 2 points | Ordered points forming the stroke line |
+| `points` | `Point[]` | at least 2 points, max 500 | Ordered points forming the stroke line |
 | `color` | `string` | CSS color string | Stroke color (default: `"#000000"`) |
 | `width` | `number` | positive integer | Stroke width in logical units (default: `4`) |
 

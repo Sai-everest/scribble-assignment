@@ -60,14 +60,18 @@
 
 ## Findings
 
-<!-- Add any issues or observations discovered during checklist review -->
-
--
+- **CHK001**: Design relies on implicit inference (`currentScore === 0` in `submitGuess`) rather than an explicit per-round tracking flag. This is acceptable for the single-round scope.
+- **CHK003**: Canvas payload limits were missing in the original design. Added during verification: Zod schema enforces max 500 points per stroke; service layer enforces max 500 strokes per room (oldest discarded). See `backend/src/api/schemas.ts` and `backend/src/services/roomStore.ts`.
+- **CHK005**: For `/canvas`, a non-matching participantId returns `403` (not drawer) rather than `404`. This is acceptable because the drawer check is the relevant authorization boundary.
+- **CHK014/015**: Performance measurement boundaries (local render vs remote sync) could be more explicit in the spec but are testable via the quickstart scenarios.
+- **CHK018**: Maximum guess text length was missing. Added during verification: `z.string().max(100)` in `backend/src/api/schemas.ts`.
+- **CHK019**: Rapid successive submissions are naturally serialized by Node.js single-threaded execution; no explicit rate-limiting queue is implemented.
+- **CHK026**: Canvas stroke accumulation bound was missing. Added during verification: `roomStore.ts` discards oldest strokes when total exceeds 500.
 
 ## Approval
 
 - [x] Technical design approved for implementation
-- [x] Technical design requires revision before implementation
+- [ ] Technical design requires revision before implementation
 
 **Reviewer**: ________________
 **Date**: ________________

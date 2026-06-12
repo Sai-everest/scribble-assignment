@@ -226,6 +226,9 @@ export function addStroke(code: string, participantId: string, stroke: Stroke) {
   }
 
   room.canvasStrokes.push(stroke);
+  if (room.canvasStrokes.length > 500) {
+    room.canvasStrokes.splice(0, room.canvasStrokes.length - 500);
+  }
   room.updatedAt = now();
   rooms.set(room.code, room);
 

@@ -32,7 +32,7 @@ export const updateCanvasSchema = z.object({
         x: z.number().min(0).max(1000),
         y: z.number().min(0).max(1000)
       })
-    ).min(2, "Stroke must have at least 2 points"),
+    ).min(2, "Stroke must have at least 2 points").max(500, "Stroke cannot exceed 500 points"),
     color: z.string().min(1),
     width: z.number().int().positive()
   })
@@ -44,7 +44,7 @@ export const clearCanvasSchema = z.object({
 
 export const submitGuessSchema = z.object({
   participantId: z.string().min(1),
-  guess: z.string().min(1, "Guess cannot be empty")
+  guess: z.string().min(1, "Guess cannot be empty").max(100, "Guess must be 100 characters or less")
 });
 
 export class HttpError extends Error {

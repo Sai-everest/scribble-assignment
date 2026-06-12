@@ -108,8 +108,8 @@ Unchanged from feature 002. See `specs/002-game-start-drawer/contracts/api.md`.
 
 **Validation**:
 - `code`: must exist. Missing/invalid → `404`.
-- `participantId`: required, non-empty string.
-- `guess`: required, non-empty after trim. Empty/whitespace-only → `400`.
+- `participantId`: required, non-empty string. Must match a participant in the room; otherwise → `404`.
+- `guess`: required, non-empty after trim, max 100 characters. Empty/whitespace-only or over 100 chars → `400`.
 - Room must have `status === "playing"` and `currentWord !== null`. Otherwise → `409`.
 - Caller must NOT be the drawer (`participantId !== room.drawerId`). Otherwise → `403`.
 
@@ -175,7 +175,7 @@ Unchanged from feature 002. See `specs/002-game-start-drawer/contracts/api.md`.
 **Validation**:
 - `code`: must exist. Missing/invalid → `404`.
 - `participantId`: required, non-empty string.
-- `stroke`: required object with `points` (array of `{x, y}`), `color` (string), `width` (number).
+- `stroke`: required object with `points` (array of `{x, y}`, min 2, max 500), `color` (string), `width` (number).
 - Caller must match `room.drawerId`. Otherwise → `403`.
 - Room must have `status === "playing"`. Otherwise → `409`.
 

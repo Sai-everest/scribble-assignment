@@ -237,6 +237,20 @@ describe("roomStore", () => {
     expect(() => clearCanvas(room.code, bobResult.participantId)).toThrow(GameError);
   });
 
+  it("addStroke discards oldest strokes when exceeding 500 strokes", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    joinRoom(room.code, "Bob");
+    startGame(room.code, aliceId);
+
+    for (let i = 0; i < 505; i++) {
+      addStroke(room.code, aliceId, { points: [{ x: i, y: i }, { x: i + 1, y: i + 1 }], color: "#000000", width: 4 });
+    }
+
+    const updatedRoom = getRoom(room.code)!;
+    expect(updatedRoom.canvasStrokes).toHaveLength(500);
+    expect(updatedRoom.canvasStrokes[0].points[0].x).toBe(5);
+  });
+
   it("submitGuess trims guess and awards 100 for first correct guess", () => {
     const { room, participantId: aliceId } = createRoom("Alice");
     const bobResult = joinRoom(room.code, "Bob")!;
