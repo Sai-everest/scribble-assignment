@@ -20,7 +20,7 @@
 
 **Purpose**: Verify prerequisite build health before extending feature 004.
 
-- [ ] T001 Verify backend and frontend build successfully before implementing feature 004
+- [x] T001 Verify backend and frontend build successfully before implementing feature 004
 
 ---
 
@@ -30,12 +30,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Extend RoomStatus with `"results"` in `backend/src/models/game.ts`
-- [ ] T003 [P] Extend RoomSnapshot status type with `"results"` in `frontend/src/services/api.ts`
-- [ ] T004 Update `toRoomSnapshot` to reveal `currentWord` for all viewers when `status === "results"` in `backend/src/services/roomStore.ts`
-- [ ] T005 [P] Update `joinRoom` service and `backend/src/api/rooms.ts` join endpoint to reject rooms in `"results"` state with `409`
-- [ ] T006 [P] Update `cleanupIdleRooms` to clean up idle `"results"` rooms in `backend/src/services/roomStore.ts`
-- [ ] T007 [P] Add `endRoundSchema` and `restartGameSchema` in `backend/src/api/schemas.ts`
+- [x] T002 [P] Extend RoomStatus with `"results"` in `backend/src/models/game.ts`
+- [x] T003 [P] Extend RoomSnapshot status type with `"results"` in `frontend/src/services/api.ts`
+- [x] T004 Update `toRoomSnapshot` to reveal `currentWord` for all viewers when `status === "results"` in `backend/src/services/roomStore.ts`
+- [x] T005 [P] Update `joinRoom` service and `backend/src/api/rooms.ts` join endpoint to reject rooms in `"results"` state with `409`
+- [x] T006 [P] Update `cleanupIdleRooms` to clean up idle `"results"` rooms in `backend/src/services/roomStore.ts`
+- [x] T007 [P] Add `endRoundSchema` and `restartGameSchema` in `backend/src/api/schemas.ts`
 
 **Checkpoint**: Foundation ready — user story implementation can now begin in parallel.
 
@@ -49,13 +49,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Implement `endRound()` service function in `backend/src/services/roomStore.ts`
-- [ ] T009 [US1] Update `submitGuess()` to auto-transition room to `"results"` when all non-drawers have a correct guess (skip if zero non-drawers) in `backend/src/services/roomStore.ts`
-- [ ] T010 [US1] Wire `POST /:code/end` endpoint in `backend/src/api/rooms.ts`
-- [ ] T011 [P] [US1] Add `api.endRound()` helper in `frontend/src/services/api.ts`
-- [ ] T012 [US1] Update `GamePage` to render results UI branch when `status === "results"` in `frontend/src/pages/GamePage.tsx`
-- [ ] T013 [US1] Add End Round button (host only) during `playing` state in `frontend/src/pages/GamePage.tsx`
-- [ ] T014 [US1] Extend polling `useEffect` to include `"results"` state in `frontend/src/pages/GamePage.tsx`
+- [x] T008 [US1] Implement `endRound()` service function in `backend/src/services/roomStore.ts`
+- [x] T009 [US1] Update `submitGuess()` to auto-transition room to `"results"` when all non-drawers have a correct guess (skip if zero non-drawers) in `backend/src/services/roomStore.ts`
+- [x] T010 [US1] Wire `POST /:code/end` endpoint in `backend/src/api/rooms.ts`
+- [x] T011 [P] [US1] Add `api.endRound()` helper in `frontend/src/services/api.ts`
+- [x] T012 [US1] Update `GamePage` to render results UI branch when `status === "results"` in `frontend/src/pages/GamePage.tsx`
+- [x] T013 [US1] Add End Round button (host only) during `playing` state in `frontend/src/pages/GamePage.tsx`
+- [x] T014 [US1] Extend polling `useEffect` to include `"results"` state in `frontend/src/pages/GamePage.tsx`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently.
 
@@ -69,10 +69,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Implement `restartGame()` service function in `backend/src/services/roomStore.ts`
-- [ ] T016 [US2] Wire `POST /:code/restart` endpoint in `backend/src/api/rooms.ts`
-- [ ] T017 [P] [US2] Add `api.restartGame()` helper in `frontend/src/services/api.ts`
-- [ ] T018 [US2] Add Restart Game button (host only) in results UI in `frontend/src/pages/GamePage.tsx`
+- [x] T015 [US2] Implement `restartGame()` service function in `backend/src/services/roomStore.ts`
+- [x] T016 [US2] Wire `POST /:code/restart` endpoint in `backend/src/api/rooms.ts`
+- [x] T017 [P] [US2] Add `api.restartGame()` helper in `frontend/src/services/api.ts`
+- [x] T018 [US2] Add Restart Game button (host only) in results UI in `frontend/src/pages/GamePage.tsx`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently.
 
@@ -82,9 +82,9 @@
 
 **Purpose**: Build validation and acceptance verification.
 
-- [ ] T019 [P] Run backend build check with `npm run build` in `backend/`
-- [ ] T020 [P] Run frontend build check with `npm run build` in `frontend/`
-- [ ] T021 Validate `quickstart.md` scenarios in browser with two tabs
+- [x] T019 [P] Run backend build check with `npm run build` in `backend/`
+- [x] T020 [P] Run frontend build check with `npm run build` in `frontend/`
+- [x] T021 Validate `quickstart.md` scenarios in browser with two tabs
 
 ---
 
