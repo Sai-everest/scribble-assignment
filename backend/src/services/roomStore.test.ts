@@ -22,6 +22,8 @@ describe("roomStore", () => {
     expect(result.room.participants).toHaveLength(1);
     expect(result.room.participants[0].name).toBe("Alice");
     expect(result.participantId).toBeDefined();
+    expect(result.room.drawerId).toBeNull();
+    expect(result.room.currentWord).toBeNull();
   });
 
   it("createRoom sets the creator as host", () => {
@@ -64,6 +66,19 @@ describe("roomStore", () => {
     expect(updatedRoom.hostParticipantId).toBe(bobResult.participantId);
   });
 
+  it("removeParticipant resets room to lobby when host leaves during playing", () => {
+    const { room: aliceRoom, participantId: aliceId } = createRoom("Alice");
+    joinRoom(aliceRoom.code, "Bob");
+    startGame(aliceRoom.code, aliceId);
+
+    removeParticipant(aliceRoom.code, aliceId);
+    const updatedRoom = getRoom(aliceRoom.code)!;
+
+    expect(updatedRoom.status).toBe("lobby");
+    expect(updatedRoom.drawerId).toBeNull();
+    expect(updatedRoom.currentWord).toBeNull();
+  });
+
   it("removeParticipant deletes room when last participant leaves", () => {
     const { room } = createRoom("Alice");
 
@@ -73,13 +88,15 @@ describe("roomStore", () => {
     expect(deletedRoom).toBeNull();
   });
 
-  it("startGame changes room status to playing", () => {
+  it("startGame changes room status to playing, sets drawerId and currentWord", () => {
     const { room, participantId } = createRoom("Alice");
     joinRoom(room.code, "Bob");
 
     const updatedRoom = startGame(room.code, participantId);
 
     expect(updatedRoom.status).toBe("playing");
+    expect(updatedRoom.drawerId).toBe(participantId);
+    expect(updatedRoom.currentWord).toBe("rocket");
   });
 
   it("startGame throws FORBIDDEN for non-host", () => {
@@ -120,5 +137,27 @@ describe("roomStore", () => {
     const { room } = createRoom("Alice");
     expect(() => joinRoom(room.code, "")).toThrow("Player name is required");
     expect(() => joinRoom(room.code, "   ")).toThrow("Player name is required");
+  });
+
+  it("toRoomSnapshot includes drawerId and currentWord", () => {
+    const { room, participantId } = createRoom("Alice");
+    const snapshot = toRoomSnapshot(room);
+
+    expect(snapshot.drawerId).toBeNull();
+    expect(snapshot.currentWord).toBeNull();
+    expect(snapshot.hostId).toBe(participantId);
+  });
+
+  it("toRoomSnapshot reveals currentWord only to drawer", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(room.code, "Bob")!;
+    startGame(room.code, aliceId);
+    const updatedRoom = getRoom(room.code)!;
+
+    const drawerSnapshot = toRoomSnapshot(updatedRoom, aliceId);
+    expect(drawerSnapshot.currentWord).toBe("rocket");
+
+    const guesserSnapshot = toRoomSnapshot(updatedRoom, bobResult.participantId);
+    expect(guesserSnapshot.currentWord).toBeNull();
   });
 });
