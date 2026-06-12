@@ -4,6 +4,25 @@ export interface Participant {
   id: string;
   name: string;
   joinedAt: string;
+  score: number;
+}
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Stroke {
+  points: Point[];
+  color: string;
+  width: number;
+}
+
+export interface GuessEntry {
+  participantId: string;
+  guess: string;
+  isCorrect: boolean;
+  submittedAt: string;
 }
 
 export interface Room {
@@ -13,6 +32,9 @@ export interface Room {
   hostParticipantId: string;
   drawerId: string | null;
   currentWord: string | null;
+  scores: Map<string, number>;
+  guessHistory: GuessEntry[];
+  canvasStrokes: Stroke[];
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +47,9 @@ export interface RoomSnapshot {
   drawerId: string | null;
   currentWord: string | null;
   availableWords: string[];
+  scores: Record<string, number>;
+  guessHistory: GuessEntry[];
+  canvasStrokes: Stroke[];
 }
 
 export interface RoomSessionResponse {

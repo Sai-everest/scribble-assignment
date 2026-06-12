@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Canvas } from "../components/Canvas";
 import { Card } from "../components/Card";
 import { GuessForm } from "../components/GuessForm";
 import { ResultPanel } from "../components/ResultPanel";
@@ -71,21 +72,20 @@ export function GamePage() {
 
         <div className="game-page__main">
           <Card title="Canvas">
-            <div className="canvas-placeholder" style={{ minHeight: "500px", backgroundColor: "#ffffff", border: "1px solid #e5e7eb", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-              {isDrawer ? (
-                <>
-                  <span style={{ fontSize: "1.5rem", fontWeight: 700 }}>{room.currentWord}</span>
-                  <span style={{ color: "#6b7280" }}>Draw this word!</span>
-                </>
-              ) : (
-                <>
-                  <span style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "4px" }}>
-                    {room.currentWord?.split("").map(() => "_").join(" ") ?? "_ _ _ _ _"}
-                  </span>
-                  <span style={{ color: "#6b7280" }}>Guess the word!</span>
-                </>
-              )}
-            </div>
+            {isDrawer ? (
+              <div style={{ textAlign: "center", marginBottom: "12px" }}>
+                <span style={{ fontSize: "1.25rem", fontWeight: 700 }}>{room.currentWord}</span>
+                <span style={{ color: "#6b7280", marginLeft: "8px" }}>— Draw this word!</span>
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", marginBottom: "12px" }}>
+                <span style={{ fontSize: "1.25rem", fontWeight: 700, letterSpacing: "4px" }}>
+                  {room.currentWord?.split("").map(() => "_").join(" ") ?? "_ _ _ _ _"}
+                </span>
+                <span style={{ color: "#6b7280", marginLeft: "8px" }}>— Guess the word!</span>
+              </div>
+            )}
+            <Canvas />
           </Card>
         </div>
 

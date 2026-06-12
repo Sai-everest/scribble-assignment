@@ -12,7 +12,7 @@ describe("api service", () => {
       json: () =>
         Promise.resolve({
           participantId: "p1",
-          room: { code: "ABCD", status: "lobby", participants: [], hostId: "p1", drawerId: null, currentWord: null, availableWords: [] },
+          room: { code: "ABCD", status: "lobby", participants: [], hostId: "p1", drawerId: null, currentWord: null, availableWords: [], scores: {}, guessHistory: [], canvasStrokes: [] },
         }),
     };
     vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
@@ -35,7 +35,7 @@ describe("api service", () => {
       ok: true,
       json: () =>
         Promise.resolve({
-          room: { code: "XYZW", status: "lobby", participants: [], hostId: "p1", drawerId: null, currentWord: null, availableWords: [] },
+          room: { code: "XYZW", status: "lobby", participants: [], hostId: "p1", drawerId: null, currentWord: null, availableWords: [], scores: {}, guessHistory: [], canvasStrokes: [] },
         }),
     };
     vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);
@@ -54,7 +54,7 @@ describe("api service", () => {
       ok: true,
       json: () =>
         Promise.resolve({
-          room: { code: "ABCD", status: "playing", participants: [], hostId: "p1", drawerId: "p1", currentWord: "rocket", availableWords: [] },
+          room: { code: "ABCD", status: "playing", participants: [], hostId: "p1", drawerId: "p1", currentWord: "rocket", availableWords: [], scores: {}, guessHistory: [], canvasStrokes: [] },
         }),
     };
     vi.mocked(fetch).mockResolvedValue(mockResponse as unknown as Response);

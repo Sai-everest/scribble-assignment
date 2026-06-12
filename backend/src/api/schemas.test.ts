@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRoomSchema, joinRoomSchema, roomCodeParamsSchema, startGameSchema } from "./schemas.js";
+import { createRoomSchema, joinRoomSchema, roomCodeParamsSchema, startGameSchema, updateCanvasSchema, clearCanvasSchema, submitGuessSchema } from "./schemas.js";
 
 describe("schemas", () => {
   it("createRoomSchema accepts a valid body with playerName", () => {
@@ -48,5 +48,67 @@ describe("schemas", () => {
 
   it("startGameSchema rejects missing participantId", () => {
     expect(() => startGameSchema.parse({})).toThrow();
+  });
+
+  it("updateCanvasSchema accepts a valid stroke", () => {
+    const result = updateCanvasSchema.parse({
+      participantId: "p1",
+      stroke: {
+        points: [{ x: 10, y: 10 }, { x: 20, y: 20 }],
+        color: "#000000",
+        width: 4
+      }
+    });
+
+    expect(result.stroke.points).toHaveLength(2);
+    expect(result.stroke.color).toBe("#000000");
+  });
+
+  it("updateCanvasSchema rejects stroke with fewer than 2 points", () => {
+    expect(() =>
+      updateCanvasSchema.parse({
+        participantId: "p1",
+        stroke: {
+          points: [{ x: 10, y: 10 }],
+          color: "#000000",
+          width: 4
+        }
+      })
+    ).toThrow();
+  });
+
+  it("updateCanvasSchema rejects points outside 0-1000 range", () => {
+    expect(() =>
+      updateCanvasSchema.parse({
+        participantId: "p1",
+        stroke: {
+          points: [{ x: -1, y: 10 }, { x: 20, y: 20 }],
+          color: "#000000",
+          width: 4
+        }
+      })
+    ).toThrow();
+  });
+
+  it("clearCanvasSchema requires participantId", () => {
+    const result = clearCanvasSchema.parse({ participantId: "p1" });
+    expect(result.participantId).toBe("p1");
+  });
+
+  it("clearCanvasSchema rejects missing participantId", () => {
+    expect(() => clearCanvasSchema.parse({})).toThrow();
+  });
+
+  it("submitGuessSchema accepts a valid guess", () => {
+    const result = submitGuessSchema.parse({ participantId: "p1", guess: "rocket" });
+    expect(result.guess).toBe("rocket");
+  });
+
+  it("submitGuessSchema rejects empty guess", () => {
+    expect(() => submitGuessSchema.parse({ participantId: "p1", guess: "" })).toThrow();
+  });
+
+  it("submitGuessSchema rejects missing participantId", () => {
+    expect(() => submitGuessSchema.parse({ guess: "rocket" })).toThrow();
   });
 });
