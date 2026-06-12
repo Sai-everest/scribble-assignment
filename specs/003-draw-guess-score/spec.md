@@ -143,3 +143,13 @@ A scoreboard displays each player's current score. Correct guesses add 100 point
 - Drawer rotation for subsequent rounds.
 - Game restart or multiple rounds.
 - Chat or messaging beyond guess submissions.
+
+## Clarification Q&A
+
+| # | Category | Question | Answer |
+|---|----------|----------|--------|
+| 1 | Domain & Data Model | What is the canonical representation of a "stroke" stored server-side and returned via polling? | Array of strokes: `{ points: [{x: number, y: number}], color: string, width: number }`. |
+| 2 | Functional Scope & Behavior | If multiple different players guess the word correctly, should each of them receive 100 points, or only the first correct guesser? | Yes — every distinct player who guesses correctly gets 100 points. |
+| 3 | Integration & External Dependencies | Should canvas drawing state, guess history, and scoreboard data be delivered through the existing room snapshot polling endpoint, or through separate dedicated endpoints? | Extend the existing room snapshot endpoint with the new fields. |
+| 4 | Interaction & UX Flow | Should canvas stroke coordinates be normalized to a fixed logical size or kept as raw pixels from the drawer's viewport? | Normalize to a fixed logical canvas (e.g., `0–1000` units) and scale on render. |
+| 5 | Edge Cases & Failure Handling | What happens if the drawer leaves mid-round? | End the round immediately, clear all round state, and return the room to lobby. |
