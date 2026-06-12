@@ -5,9 +5,12 @@ import {
   joinRoomSchema,
   roomCodeParamsSchema,
   roomViewerQuerySchema,
-  startGameSchema
+  startGameSchema,
+  updateCanvasSchema,
+  clearCanvasSchema,
+  submitGuessSchema
 } from "./schemas.js";
-import { createRoom, getRoom, joinRoom, startGame, toRoomSnapshot, GameError } from "../services/roomStore.js";
+import { createRoom, getRoom, joinRoom, startGame, toRoomSnapshot, addStroke, clearCanvas, submitGuess, GameError } from "../services/roomStore.js";
 
 export function createRoomsRouter() {
   const router = Router();
@@ -82,6 +85,74 @@ export function createRoomsRouter() {
 
       response.json({
         room: toRoomSnapshot(room, participantId)
+      });
+    } catch (error) {
+      if (error instanceof GameError) {
+        const statusCode =
+          error.code === "NOT_FOUND" ? 404 :
+            error.code === "FORBIDDEN" ? 403 :
+              409;
+        next(new HttpError(statusCode, error.message));
+        return;
+      }
+      next(error);
+    }
+  });
+
+  router.post("/:code/canvas", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId, stroke } = updateCanvasSchema.parse(request.body);
+      const room = addStroke(code.toUpperCase(), participantId, stroke);
+
+      response.json({
+        room: toRoomSnapshot(room, participantId)
+      });
+    } catch (error) {
+      if (error instanceof GameError) {
+        const statusCode =
+          error.code === "NOT_FOUND" ? 404 :
+            error.code === "FORBIDDEN" ? 403 :
+              409;
+        next(new HttpError(statusCode, error.message));
+        return;
+      }
+      next(error);
+    }
+  });
+
+  router.post("/:code/canvas/clear", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId } = clearCanvasSchema.parse(request.body);
+      const room = clearCanvas(code.toUpperCase(), participantId);
+
+      response.json({
+        room: toRoomSnapshot(room, participantId)
+      });
+    } catch (error) {
+      if (error instanceof GameError) {
+        const statusCode =
+          error.code === "NOT_FOUND" ? 404 :
+            error.code === "FORBIDDEN" ? 403 :
+              409;
+        next(new HttpError(statusCode, error.message));
+        return;
+      }
+      next(error);
+    }
+  });
+
+  router.post("/:code/guess", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId, guess } = submitGuessSchema.parse(request.body);
+      const result = submitGuess(code.toUpperCase(), participantId, guess);
+
+      response.json({
+        guess: result.guess,
+        scoreAwarded: result.scoreAwarded,
+        room: toRoomSnapshot(result.room, participantId)
       });
     } catch (error) {
       if (error instanceof GameError) {

@@ -7,7 +7,11 @@ import {
   removeParticipant,
   startGame,
   toRoomSnapshot,
-  GameError
+  GameError,
+  addStroke,
+  clearCanvas,
+  submitGuess,
+  saveRoom
 } from "./roomStore.js";
 
 describe("roomStore", () => {
@@ -53,6 +57,9 @@ describe("roomStore", () => {
     const snapshot = toRoomSnapshot(room);
 
     expect(snapshot.hostId).toBe(participantId);
+    expect(snapshot.scores).toEqual({});
+    expect(snapshot.guessHistory).toEqual([]);
+    expect(snapshot.canvasStrokes).toEqual([]);
   });
 
   it("removeParticipant transfers host to next-joined participant (FIFO)", () => {
@@ -77,6 +84,9 @@ describe("roomStore", () => {
     expect(updatedRoom.status).toBe("lobby");
     expect(updatedRoom.drawerId).toBeNull();
     expect(updatedRoom.currentWord).toBeNull();
+    expect(updatedRoom.scores.size).toBe(0);
+    expect(updatedRoom.guessHistory).toHaveLength(0);
+    expect(updatedRoom.canvasStrokes).toHaveLength(0);
   });
 
   it("removeParticipant deletes room when last participant leaves", () => {
@@ -97,6 +107,9 @@ describe("roomStore", () => {
     expect(updatedRoom.status).toBe("playing");
     expect(updatedRoom.drawerId).toBe(participantId);
     expect(updatedRoom.currentWord).toBe("rocket");
+    expect(updatedRoom.scores.get(participantId)).toBe(0);
+    expect(updatedRoom.guessHistory).toHaveLength(0);
+    expect(updatedRoom.canvasStrokes).toHaveLength(0);
   });
 
   it("startGame throws FORBIDDEN for non-host", () => {
@@ -159,5 +172,146 @@ describe("roomStore", () => {
 
     const guesserSnapshot = toRoomSnapshot(updatedRoom, bobResult.participantId);
     expect(guesserSnapshot.currentWord).toBeNull();
+  });
+
+  it("removeParticipant resets room to lobby when drawer (non-host) leaves during playing", () => {
+    const { room: aliceRoom, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(aliceRoom.code, "Bob")!;
+    startGame(aliceRoom.code, aliceId);
+
+    const roomAfterStart = getRoom(aliceRoom.code)!;
+    roomAfterStart.drawerId = bobResult.participantId;
+    saveRoom(roomAfterStart);
+
+    removeParticipant(aliceRoom.code, bobResult.participantId);
+    const updatedRoom = getRoom(aliceRoom.code)!;
+
+    expect(updatedRoom.status).toBe("lobby");
+    expect(updatedRoom.drawerId).toBeNull();
+    expect(updatedRoom.currentWord).toBeNull();
+    expect(updatedRoom.scores.size).toBe(0);
+    expect(updatedRoom.guessHistory).toHaveLength(0);
+    expect(updatedRoom.canvasStrokes).toHaveLength(0);
+  });
+
+  it("addStroke appends stroke and returns updated room", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    joinRoom(room.code, "Bob");
+    startGame(room.code, aliceId);
+
+    const stroke = { points: [{ x: 10, y: 10 }, { x: 20, y: 20 }], color: "#000000", width: 4 };
+    const updatedRoom = addStroke(room.code, aliceId, stroke);
+
+    expect(updatedRoom.canvasStrokes).toHaveLength(1);
+    expect(updatedRoom.canvasStrokes[0].points).toEqual(stroke.points);
+  });
+
+  it("addStroke throws FORBIDDEN for non-drawer", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(room.code, "Bob")!;
+    startGame(room.code, aliceId);
+
+    expect(() => addStroke(room.code, bobResult.participantId, { points: [{ x: 1, y: 1 }], color: "#000", width: 2 })).toThrow(GameError);
+  });
+
+  it("addStroke throws CONFLICT when room is not playing", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    expect(() => addStroke(room.code, aliceId, { points: [{ x: 1, y: 1 }], color: "#000", width: 2 })).toThrow(GameError);
+  });
+
+  it("clearCanvas removes all strokes", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    joinRoom(room.code, "Bob");
+    startGame(room.code, aliceId);
+    addStroke(room.code, aliceId, { points: [{ x: 10, y: 10 }], color: "#000000", width: 4 });
+
+    const updatedRoom = clearCanvas(room.code, aliceId);
+    expect(updatedRoom.canvasStrokes).toHaveLength(0);
+  });
+
+  it("clearCanvas throws FORBIDDEN for non-drawer", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(room.code, "Bob")!;
+    startGame(room.code, aliceId);
+
+    expect(() => clearCanvas(room.code, bobResult.participantId)).toThrow(GameError);
+  });
+
+  it("addStroke discards oldest strokes when exceeding 500 strokes", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    joinRoom(room.code, "Bob");
+    startGame(room.code, aliceId);
+
+    for (let i = 0; i < 505; i++) {
+      addStroke(room.code, aliceId, { points: [{ x: i, y: i }, { x: i + 1, y: i + 1 }], color: "#000000", width: 4 });
+    }
+
+    const updatedRoom = getRoom(room.code)!;
+    expect(updatedRoom.canvasStrokes).toHaveLength(500);
+    expect(updatedRoom.canvasStrokes[0].points[0].x).toBe(5);
+  });
+
+  it("submitGuess trims guess and awards 100 for first correct guess", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(room.code, "Bob")!;
+    startGame(room.code, aliceId);
+
+    const result = submitGuess(room.code, bobResult.participantId, "  Rocket  ");
+
+    expect(result.guess.guess).toBe("Rocket");
+    expect(result.guess.isCorrect).toBe(true);
+    expect(result.scoreAwarded).toBe(100);
+    expect(result.room.scores.get(bobResult.participantId)).toBe(100);
+    expect(result.room.guessHistory).toHaveLength(1);
+  });
+
+  it("submitGuess awards 0 for subsequent correct guesses", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(room.code, "Bob")!;
+    startGame(room.code, aliceId);
+    submitGuess(room.code, bobResult.participantId, "rocket");
+
+    const result = submitGuess(room.code, bobResult.participantId, "rocket");
+
+    expect(result.guess.isCorrect).toBe(true);
+    expect(result.scoreAwarded).toBe(0);
+    expect(result.room.scores.get(bobResult.participantId)).toBe(100);
+    expect(result.room.guessHistory).toHaveLength(2);
+  });
+
+  it("submitGuess awards 0 for incorrect guess and records it", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(room.code, "Bob")!;
+    startGame(room.code, aliceId);
+
+    const result = submitGuess(room.code, bobResult.participantId, "castle");
+
+    expect(result.guess.isCorrect).toBe(false);
+    expect(result.scoreAwarded).toBe(0);
+    expect(result.room.scores.get(bobResult.participantId)).toBe(0);
+  });
+
+  it("submitGuess throws CONFLICT for empty guess", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(room.code, "Bob")!;
+    startGame(room.code, aliceId);
+
+    expect(() => submitGuess(room.code, bobResult.participantId, "   ")).toThrow(GameError);
+    expect(() => submitGuess(room.code, bobResult.participantId, "")).toThrow(GameError);
+  });
+
+  it("submitGuess throws FORBIDDEN for drawer", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    joinRoom(room.code, "Bob");
+    startGame(room.code, aliceId);
+
+    expect(() => submitGuess(room.code, aliceId, "rocket")).toThrow(GameError);
+  });
+
+  it("submitGuess throws CONFLICT when room is not playing", () => {
+    const { room, participantId: aliceId } = createRoom("Alice");
+    const bobResult = joinRoom(room.code, "Bob")!;
+
+    expect(() => submitGuess(room.code, bobResult.participantId, "rocket")).toThrow(GameError);
   });
 });

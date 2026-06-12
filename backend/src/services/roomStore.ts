@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Participant, Room, RoomSnapshot } from "../models/game.js";
+import type { Participant, Room, RoomSnapshot, Stroke, GuessEntry } from "../models/game.js";
 import { STARTER_WORDS } from "../seed/starterData.js";
 
 const rooms = new Map<string, Room>();
@@ -41,7 +41,8 @@ function createParticipant(name?: string): Participant {
   return {
     id: randomUUID(),
     name: validateName(name),
-    joinedAt: now()
+    joinedAt: now(),
+    score: 0
   };
 }
 
@@ -62,6 +63,9 @@ export function createRoom(playerName?: string) {
     hostParticipantId: participant.id,
     drawerId: null,
     currentWord: null,
+    scores: new Map(),
+    guessHistory: [],
+    canvasStrokes: [],
     createdAt: now(),
     updatedAt: now()
   };
@@ -138,6 +142,9 @@ export function startGame(code: string, participantId: string) {
   room.status = "playing";
   room.drawerId = room.hostParticipantId;
   room.currentWord = STARTER_WORDS[0];
+  room.scores = new Map(room.participants.map((p) => [p.id, 0]));
+  room.guessHistory = [];
+  room.canvasStrokes = [];
   room.updatedAt = now();
   rooms.set(room.code, room);
 
@@ -172,7 +179,17 @@ export function removeParticipant(code: string, participantId: string) {
       room.status = "lobby";
       room.drawerId = null;
       room.currentWord = null;
+      room.scores = new Map();
+      room.guessHistory = [];
+      room.canvasStrokes = [];
     }
+  } else if (room.status === "playing" && room.drawerId === participantId) {
+    room.status = "lobby";
+    room.drawerId = null;
+    room.currentWord = null;
+    room.scores = new Map();
+    room.guessHistory = [];
+    room.canvasStrokes = [];
   }
 
   room.updatedAt = now();
@@ -193,6 +210,109 @@ export function cleanupIdleRooms() {
   }
 }
 
+export function addStroke(code: string, participantId: string, stroke: Stroke) {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new GameError("Unable to load room", "NOT_FOUND");
+  }
+
+  if (room.status !== "playing") {
+    throw new GameError("Room is not in an active playing state", "CONFLICT");
+  }
+
+  if (room.drawerId !== participantId) {
+    throw new GameError("Only the drawer can update the canvas", "FORBIDDEN");
+  }
+
+  room.canvasStrokes.push(stroke);
+  if (room.canvasStrokes.length > 500) {
+    room.canvasStrokes.splice(0, room.canvasStrokes.length - 500);
+  }
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return cloneRoom(room);
+}
+
+export function clearCanvas(code: string, participantId: string) {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new GameError("Unable to load room", "NOT_FOUND");
+  }
+
+  if (room.status !== "playing") {
+    throw new GameError("Room is not in an active playing state", "CONFLICT");
+  }
+
+  if (room.drawerId !== participantId) {
+    throw new GameError("Only the drawer can clear the canvas", "FORBIDDEN");
+  }
+
+  room.canvasStrokes = [];
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return cloneRoom(room);
+}
+
+export interface SubmitGuessResult {
+  guess: GuessEntry;
+  scoreAwarded: number;
+  room: Room;
+}
+
+export function submitGuess(code: string, participantId: string, guessText: string): SubmitGuessResult {
+  const room = rooms.get(code);
+
+  if (!room) {
+    throw new GameError("Unable to load room", "NOT_FOUND");
+  }
+
+  if (room.status !== "playing" || !room.currentWord) {
+    throw new GameError("Room is not in an active playing state", "CONFLICT");
+  }
+
+  if (room.drawerId === participantId) {
+    throw new GameError("Drawer cannot submit guesses", "FORBIDDEN");
+  }
+
+  const participant = room.participants.find((p) => p.id === participantId);
+  if (!participant) {
+    throw new GameError("Participant not found", "NOT_FOUND");
+  }
+
+  const trimmed = guessText.trim();
+  if (trimmed.length === 0) {
+    throw new GameError("Guess cannot be empty", "CONFLICT");
+  }
+
+  const isCorrect = trimmed.toLowerCase() === room.currentWord.toLowerCase();
+  let scoreAwarded = 0;
+
+  if (isCorrect) {
+    const currentScore = room.scores.get(participantId) ?? 0;
+    if (currentScore === 0) {
+      scoreAwarded = 100;
+      room.scores.set(participantId, 100);
+    }
+  }
+
+  const guess: GuessEntry = {
+    participantId,
+    guess: trimmed,
+    isCorrect,
+    submittedAt: now()
+  };
+
+  room.guessHistory.push(guess);
+  room.updatedAt = now();
+  rooms.set(room.code, room);
+
+  return { guess, scoreAwarded, room: cloneRoom(room) };
+}
+
 export function clearRooms() {
   rooms.clear();
 }
@@ -206,10 +326,16 @@ export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSn
   return {
     code: room.code,
     status: room.status,
-    participants: room.participants.map((participant) => ({ ...participant })),
+    participants: room.participants.map((participant) => ({
+      ...participant,
+      score: room.scores.get(participant.id) ?? 0
+    })),
     hostId: room.hostParticipantId,
     drawerId: room.drawerId,
     currentWord: isDrawer ? room.currentWord : null,
-    availableWords: listWords()
+    availableWords: listWords(),
+    scores: Object.fromEntries(room.scores),
+    guessHistory: room.guessHistory,
+    canvasStrokes: room.canvasStrokes
   };
 }
