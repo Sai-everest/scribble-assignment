@@ -265,18 +265,16 @@ describe("roomStore", () => {
     expect(result.room.guessHistory).toHaveLength(1);
   });
 
-  it("submitGuess awards 0 for subsequent correct guesses", () => {
+  it("submitGuess auto-transitions room to results when all non-drawers guessed correctly", () => {
     const { room, participantId: aliceId } = createRoom("Alice");
     const bobResult = joinRoom(room.code, "Bob")!;
     startGame(room.code, aliceId);
-    submitGuess(room.code, bobResult.participantId, "rocket");
-
     const result = submitGuess(room.code, bobResult.participantId, "rocket");
 
     expect(result.guess.isCorrect).toBe(true);
-    expect(result.scoreAwarded).toBe(0);
-    expect(result.room.scores.get(bobResult.participantId)).toBe(100);
-    expect(result.room.guessHistory).toHaveLength(2);
+    expect(result.scoreAwarded).toBe(100);
+    expect(result.room.status).toBe("results");
+    expect(() => submitGuess(room.code, bobResult.participantId, "rocket")).toThrow(GameError);
   });
 
   it("submitGuess awards 0 for incorrect guess and records it", () => {

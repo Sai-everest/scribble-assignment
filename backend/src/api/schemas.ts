@@ -47,6 +47,14 @@ export const submitGuessSchema = z.object({
   guess: z.string().min(1, "Guess cannot be empty").max(100, "Guess must be 100 characters or less")
 });
 
+export const endRoundSchema = z.object({
+  participantId: z.string().min(1)
+});
+
+export const restartGameSchema = z.object({
+  participantId: z.string().min(1)
+});
+
 export class HttpError extends Error {
   statusCode: number;
 
