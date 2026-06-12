@@ -67,7 +67,7 @@ export function createRoomsRouter() {
       }
 
       response.json({
-        room: toRoomSnapshot(room, participantId)
+        room: toRoomSnapshot(room, participantId ?? undefined)
       });
     } catch (error) {
       next(error);
@@ -81,7 +81,7 @@ export function createRoomsRouter() {
       const room = startGame(code.toUpperCase(), participantId);
 
       response.json({
-        room: toRoomSnapshot(room)
+        room: toRoomSnapshot(room, participantId)
       });
     } catch (error) {
       if (error instanceof GameError) {

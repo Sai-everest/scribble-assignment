@@ -18,7 +18,7 @@ export function LobbyPage() {
   const [startError, setStartError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!room) {
+    if (!room || !participantId) {
       navigate("/", { replace: true });
       return;
     }
@@ -26,7 +26,7 @@ export function LobbyPage() {
     if (room.status === "playing") {
       navigate("/game", { replace: true });
     }
-  }, [navigate, room]);
+  }, [navigate, room, participantId]);
 
   useEffect(() => {
     if (!room || room.status !== "lobby") {

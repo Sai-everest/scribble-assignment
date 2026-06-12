@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Participant, Room, RoomSnapshot } from "../models/game.js";
-import { STARTER_ROLES, STARTER_WORDS } from "../seed/starterData.js";
+import { STARTER_WORDS } from "../seed/starterData.js";
 
 const rooms = new Map<string, Room>();
 
@@ -60,6 +60,8 @@ export function createRoom(playerName?: string) {
     status: "lobby",
     participants: [participant],
     hostParticipantId: participant.id,
+    drawerId: null,
+    currentWord: null,
     createdAt: now(),
     updatedAt: now()
   };
@@ -134,6 +136,8 @@ export function startGame(code: string, participantId: string) {
   }
 
   room.status = "playing";
+  room.drawerId = room.hostParticipantId;
+  room.currentWord = STARTER_WORDS[0];
   room.updatedAt = now();
   rooms.set(room.code, room);
 
@@ -163,6 +167,12 @@ export function removeParticipant(code: string, participantId: string) {
   if (room.hostParticipantId === participantId) {
     const nextHost = room.participants[0];
     room.hostParticipantId = nextHost.id;
+
+    if (room.status === "playing") {
+      room.status = "lobby";
+      room.drawerId = null;
+      room.currentWord = null;
+    }
   }
 
   room.updatedAt = now();
@@ -190,13 +200,16 @@ export function clearRooms() {
 // Start periodic cleanup
 setInterval(cleanupIdleRooms, 60_000);
 
-export function toRoomSnapshot(room: Room, _viewerParticipantId?: string): RoomSnapshot {
+export function toRoomSnapshot(room: Room, viewerParticipantId?: string): RoomSnapshot {
+  const isDrawer = viewerParticipantId !== undefined && room.drawerId === viewerParticipantId;
+
   return {
     code: room.code,
     status: room.status,
     participants: room.participants.map((participant) => ({ ...participant })),
     hostId: room.hostParticipantId,
-    availableWords: listWords(),
-    roles: [...STARTER_ROLES]
+    drawerId: room.drawerId,
+    currentWord: isDrawer ? room.currentWord : null,
+    availableWords: listWords()
   };
 }
