@@ -8,9 +8,11 @@ import {
   startGameSchema,
   updateCanvasSchema,
   clearCanvasSchema,
-  submitGuessSchema
+  submitGuessSchema,
+  endRoundSchema,
+  restartGameSchema
 } from "./schemas.js";
-import { createRoom, getRoom, joinRoom, startGame, toRoomSnapshot, addStroke, clearCanvas, submitGuess, GameError } from "../services/roomStore.js";
+import { createRoom, getRoom, joinRoom, startGame, toRoomSnapshot, addStroke, clearCanvas, submitGuess, endRound, restartGame, GameError } from "../services/roomStore.js";
 
 export function createRoomsRouter() {
   const router = Router();
@@ -40,7 +42,7 @@ export function createRoomsRouter() {
         throw new HttpError(404, "Unable to join room");
       }
 
-      if (existingRoom.status === "playing") {
+      if (existingRoom.status === "playing" || existingRoom.status === "results") {
         throw new HttpError(409, "Game already in progress");
       }
 
@@ -153,6 +155,50 @@ export function createRoomsRouter() {
         guess: result.guess,
         scoreAwarded: result.scoreAwarded,
         room: toRoomSnapshot(result.room, participantId)
+      });
+    } catch (error) {
+      if (error instanceof GameError) {
+        const statusCode =
+          error.code === "NOT_FOUND" ? 404 :
+            error.code === "FORBIDDEN" ? 403 :
+              409;
+        next(new HttpError(statusCode, error.message));
+        return;
+      }
+      next(error);
+    }
+  });
+
+  router.post("/:code/end", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId } = endRoundSchema.parse(request.body);
+      const room = endRound(code.toUpperCase(), participantId);
+
+      response.json({
+        room: toRoomSnapshot(room, participantId)
+      });
+    } catch (error) {
+      if (error instanceof GameError) {
+        const statusCode =
+          error.code === "NOT_FOUND" ? 404 :
+            error.code === "FORBIDDEN" ? 403 :
+              409;
+        next(new HttpError(statusCode, error.message));
+        return;
+      }
+      next(error);
+    }
+  });
+
+  router.post("/:code/restart", (request, response, next) => {
+    try {
+      const { code } = roomCodeParamsSchema.parse(request.params);
+      const { participantId } = restartGameSchema.parse(request.body);
+      const room = restartGame(code.toUpperCase(), participantId);
+
+      response.json({
+        room: toRoomSnapshot(room, participantId)
       });
     } catch (error) {
       if (error instanceof GameError) {

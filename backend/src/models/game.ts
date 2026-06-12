@@ -1,4 +1,4 @@
-export type RoomStatus = "lobby" | "playing";
+export type RoomStatus = "lobby" | "playing" | "results";
 
 export interface Participant {
   id: string;
