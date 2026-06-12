@@ -82,7 +82,7 @@ Public view of a room returned to clients.
 2. New player joins are rejected when `room.status === "results"` (same restriction as `"playing"`).
 3. Guess submissions are rejected when `room.status !== "playing"`.
 4. Only the host may trigger `endRound` or `restartGame`; otherwise rejected with `403`.
-5. `endRound` is accepted from any `status`, but primary use is `"playing" -> "results"`.
+5. `endRound` is only accepted when `room.status === "playing"`; otherwise rejected with `409`.
 6. `restartGame` is only accepted when `room.status === "results"`; otherwise rejected with `409`.
 7. On restart, `scores`, `guessHistory`, `canvasStrokes`, `drawerId`, and `currentWord` are all cleared; `participants` and `hostParticipantId` are preserved.
 

@@ -33,7 +33,7 @@
 - [ ] T002 [P] Extend RoomStatus with `"results"` in `backend/src/models/game.ts`
 - [ ] T003 [P] Extend RoomSnapshot status type with `"results"` in `frontend/src/services/api.ts`
 - [ ] T004 Update `toRoomSnapshot` to reveal `currentWord` for all viewers when `status === "results"` in `backend/src/services/roomStore.ts`
-- [ ] T005 [P] Update `joinRoom` to reject rooms in `"results"` state in `backend/src/services/roomStore.ts`
+- [ ] T005 [P] Update `joinRoom` service and `backend/src/api/rooms.ts` join endpoint to reject rooms in `"results"` state with `409`
 - [ ] T006 [P] Update `cleanupIdleRooms` to clean up idle `"results"` rooms in `backend/src/services/roomStore.ts`
 - [ ] T007 [P] Add `endRoundSchema` and `restartGameSchema` in `backend/src/api/schemas.ts`
 
@@ -50,7 +50,7 @@
 ### Implementation for User Story 1
 
 - [ ] T008 [US1] Implement `endRound()` service function in `backend/src/services/roomStore.ts`
-- [ ] T009 [US1] Update `submitGuess()` to auto-transition room to `"results"` when all non-drawers have a correct guess in `backend/src/services/roomStore.ts`
+- [ ] T009 [US1] Update `submitGuess()` to auto-transition room to `"results"` when all non-drawers have a correct guess (skip if zero non-drawers) in `backend/src/services/roomStore.ts`
 - [ ] T010 [US1] Wire `POST /:code/end` endpoint in `backend/src/api/rooms.ts`
 - [ ] T011 [P] [US1] Add `api.endRound()` helper in `frontend/src/services/api.ts`
 - [ ] T012 [US1] Update `GamePage` to render results UI branch when `status === "results"` in `frontend/src/pages/GamePage.tsx`

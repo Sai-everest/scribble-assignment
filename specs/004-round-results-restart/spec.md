@@ -72,10 +72,10 @@ From the results screen, the host can restart the game, returning all players to
 
 ### Key Entities *(include if feature involves data)*
 
-- **Room**: Updated attributes: `status` now supports `results` in addition to `lobby` and `playing`. `resultScreen` contains the final snapshot of the round (word, scores, history) while in `results` state.
+- **Room**: Updated attributes: `status` now supports `results` in addition to `lobby` and `playing`. In `results` state, existing fields `currentWord`, `scores`, and `guessHistory` collectively represent the round result snapshot.
 - **Participant**: `score` is preserved through the results phase but reset to 0 on restart.
 - **RoundResult**: Conceptual snapshot of a completed round. Attributes: `secretWord` (string), `scores` (map of participant ID to integer), `guessHistory` (ordered list of `GuessEntry`).
-- **RoomSnapshot**: Updated attributes: `status` may be `results`; when `results`, additional fields `secretWord`, `scores`, and `guessHistory` are included.
+- **RoomSnapshot**: Updated attributes: `status` may be `results`; when `results`, additional fields `currentWord` (revealed to all), `scores`, and `guessHistory` are included.
 
 ## Success Criteria *(mandatory)*
 
